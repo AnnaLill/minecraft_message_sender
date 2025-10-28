@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "minecraft_message_sender",
+  "version": "1.0.0",
+  "name": "Minecraft Message Sender",
+  "description": "A mod for sending messages with Protobuf serialization and PostgreSQL storage",
+  "authors": ["Minecraft Message Sender Team"],
+  "contact": {
+    "homepage": "https://github.com/AnnaLill/minecraft_message_sender",
+    "sources": "https://github.com/AnnaLill/minecraft_message_sender"
+  },
+  "license": "MIT",
+  "icon": "assets/minecraft_message_sender/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["org.example.ExampleMod"],
+    "client": ["org.example.client.ClientInit"]
+  },
+  "mixins": [],
+  "depends": {
+    "fabricloader": ">=0.16.14",
+    "fabric": "*",
+    "minecraft": "1.21.7",
+    "java": ">=21"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}
