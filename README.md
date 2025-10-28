@@ -92,12 +92,17 @@ CREATE TABLE messages (
 ```
 
 ### Настройка PostgreSQL
+
+📖 **[Полная инструкция по настройке БД](DATABASE_SETUP.md)**
+
+Краткая инструкция:
 1. Установите PostgreSQL 12+
 2. Создайте базу данных:
    ```sql
    CREATE DATABASE minecraft_messages;
    ```
-3. Настройте подключение в `src/main/resources/hibernate.cfg.xml`
+3. Выполните SQL скрипт: `database_init.sql`
+4. Настройте подключение в `src/main/resources/hibernate.cfg.xml`
 
 > **💡 Примечание**: Мод работает и без PostgreSQL - сообщения логируются в консоль сервера.
 
