@@ -22,6 +22,7 @@ Fabric мод для отправки сообщений с использова
 - **Java**: 21+
 - **Fabric Loader**: 0.16.14+
 - **PostgreSQL**: 12+ (опционально)
+- **Mappings**: Mojang (loom.officialMojangMappings)
 
 > **⚠️ Примечание о версиях**: В задании указана версия Minecraft 1.21.8, но используется стабильная версия 1.21.7. При появлении стабильной версии 1.21.8 рекомендуется обновить зависимости.
 
@@ -79,6 +80,8 @@ Fabric мод для отправки сообщений с использова
 ### Сетевое взаимодействие
 - `MessagePayload` - клиент→сервер (Protobuf данные)
 - `ConfirmationPayload` - сервер→клиент (подтверждения)
+
+Используется Mojang API: `CustomPacketPayload`, `CustomPacketPayload.Type`, `StreamCodec`, `ResourceLocation.fromNamespaceAndPath`.
 
 ## 🗄️ База данных
 

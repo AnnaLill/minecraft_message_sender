@@ -4,6 +4,12 @@ package org.example.server.db.entity;
 import jakarta.persistence.*;
 import java.util.UUID;
 
+/**
+ * JPA Entity для таблицы messages.
+ *
+ * <p>Хранит UUID игрока и текст сообщения (до 256 символов).
+ * Поле id автоинкрементное (IDENTITY).</p>
+ */
 @Entity
 @Table(name = "messages")
 public class MessageEntity {

@@ -25,7 +25,7 @@ class MessageEntityTest {
 
         assertThat(entity.getUuid()).isEqualTo(testUuid);
         assertThat(entity.getText()).isEqualTo(testText);
-        assertThat(entity.getId()).isNull(); // ID должен быть null до сохранения
+        assertThat(entity.getId()).isNull();
     }
 
     @Test

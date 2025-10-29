@@ -1,9 +1,6 @@
 syntax = "proto3";
-
-
 option java_package = "org.example.proto";
 option java_outer_classname = "MessageProto";
-
 
 message Message {
     string text = 1;

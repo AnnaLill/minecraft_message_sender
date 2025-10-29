@@ -1,116 +1,92 @@
 package org.example;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.util.Identifier;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 import org.example.server.db.service.MessageService;
 import org.example.server.db.service.MessageServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 
 /**
- * Основной класс мода Minecraft Message Sender.
- * 
- * <p>Мод предоставляет функциональность для отправки сообщений от клиента к серверу
- * с использованием Protobuf сериализации и сохранением в PostgreSQL через Hibernate.</p>
- * 
- * <p>Основные возможности:</p>
- * <ul>
- *   <li>GUI экран для ввода сообщений (клавиша M)</li>
- *   <li>Сериализация сообщений через Protobuf</li>
- *   <li>Сохранение в PostgreSQL с помощью Hibernate</li>
- *   <li>Подтверждения от сервера клиенту</li>
- * </ul>
- * 
- * @author Minecraft Message Sender Team
- * @version 1.0.0
- * @since 1.21.7
+ * Основной серверный мод-инициализатор.
+ *
+ * <p>Регистрирует сетевые типы пакетов на Mojang API
+ * через {@link CustomPacketPayload.Type} и {@link StreamCodec},
+ * обрабатывает входящие клиентские сообщения в формате Protobuf и
+ * отправляет подтверждение обратно клиенту.</p>
  */
 public class ExampleMod implements ModInitializer {
-    /** Идентификатор мода */
     public static final String MOD_ID = "minecraft_message_sender";
-    /** Логгер для записи событий мода */
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-    /** Сервис для работы с сообщениями */
     private final MessageService messageService = new MessageServiceImpl();
 
     /**
-     * Payload для отправки сообщений от клиента к серверу.
-     * Содержит сериализованные данные Protobuf сообщения.
+     * Клиент → Сервер полезная нагрузка с сериализованным Protobuf-сообщением.
      */
-    public record MessagePayload(byte[] data) implements CustomPayload {
-        /** Идентификатор payload для регистрации в сети */
-        public static final Id<MessagePayload> ID = new CustomPayload.Id<>(Identifier.of(MOD_ID, "message"));
+    public record MessagePayload(byte[] data) implements CustomPacketPayload {
+        public static final CustomPacketPayload.Type<MessagePayload> TYPE =
+                new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(MOD_ID, "message"));
+
+        /**
+         * Кодек для сериализации/десериализации полезной нагрузки в сетевой буфер.
+         */
+        public static final StreamCodec<FriendlyByteBuf, MessagePayload> CODEC = StreamCodec.of(
+                (buf, payload) -> buf.writeByteArray(payload.data()),
+                buf -> new MessagePayload(buf.readByteArray())
+        );
 
         @Override
-        public Id<? extends CustomPayload> getId() {
-            return ID;
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
         }
-
-        /** Кодек для сериализации/десериализации payload */
-        public static final PacketCodec<RegistryByteBuf, MessagePayload> CODEC = PacketCodec.of(
-                (payload, buf) -> buf.writeBytes(payload.data()),
-                buf -> {
-                    byte[] data = new byte[buf.readableBytes()];
-                    buf.readBytes(data);
-                    return new MessagePayload(data);
-                }
-        );
     }
 
     /**
-     * Payload для отправки подтверждения от сервера клиенту.
-     * Содержит простую строку с подтверждением получения сообщения.
+     * Сервер → Клиент подтверждение доставки/сохранения сообщения.
      */
-    public record ConfirmationPayload(String message) implements CustomPayload {
-        /** Идентификатор payload для регистрации в сети */
-        public static final Id<ConfirmationPayload> ID = new CustomPayload.Id<>(Identifier.of(MOD_ID, "confirmation"));
+    public record ConfirmationPayload(String message) implements CustomPacketPayload {
+        public static final CustomPacketPayload.Type<ConfirmationPayload> TYPE =
+                new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(MOD_ID, "confirmation"));
+
+        /**
+         * Кодек для строки подтверждения.
+         */
+        public static final StreamCodec<FriendlyByteBuf, ConfirmationPayload> CODEC = StreamCodec.of(
+                (buf, payload) -> buf.writeUtf(payload.message()),
+                buf -> new ConfirmationPayload(buf.readUtf())
+        );
 
         @Override
-        public Id<? extends CustomPayload> getId() {
-            return ID;
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
         }
-
-        /** Кодек для сериализации/десериализации payload */
-        public static final PacketCodec<RegistryByteBuf, ConfirmationPayload> CODEC = PacketCodec.of(
-                (payload, buf) -> buf.writeString(payload.message()),
-                buf -> new ConfirmationPayload(buf.readString())
-        );
     }
 
-    /**
-     * Инициализация мода при загрузке.
-     * 
-     * <p>Регистрирует:</p>
-     * <ul>
-     *   <li>Payload типы для сетевого взаимодействия</li>
-     *   <li>Обработчик входящих сообщений от клиентов</li>
-     * </ul>
-     */
     @Override
     public void onInitialize() {
         LOGGER.info("Minecraft Message Sender Initialized");
         System.out.println("ExampleMod: Серверная часть инициализирована");
 
-        PayloadTypeRegistry.playC2S().register(MessagePayload.ID, MessagePayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(MessagePayload.TYPE, MessagePayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(ConfirmationPayload.TYPE, ConfirmationPayload.CODEC);
 
-        PayloadTypeRegistry.playS2C().register(ConfirmationPayload.ID, ConfirmationPayload.CODEC);
-
-        ServerPlayNetworking.registerGlobalReceiver(MessagePayload.ID, (payload, context) -> {
+        ServerPlayNetworking.registerGlobalReceiver(MessagePayload.TYPE, (payload, context) -> {
             MinecraftServer server = context.server();
-            ServerPlayerEntity player = context.player();
+            ServerPlayer player = context.player();
 
             server.execute(() -> {
                 try {
-                    org.example.proto.MessageProto.Message message = org.example.proto.MessageProto.Message.parseFrom(payload.data());
+                    org.example.proto.MessageProto.Message message =
+                            org.example.proto.MessageProto.Message.parseFrom(payload.data());
                     LOGGER.info("Received message from player {}: {}", player.getName().getString(), message.getText());
-                    messageService.saveMessage(player.getUuid(), message.getText());
+                    messageService.saveMessage(player.getUUID(), message.getText());
 
                     ConfirmationPayload confirmation = new ConfirmationPayload("Ваше сообщение получено и сохранено!");
                     ServerPlayNetworking.send(player, confirmation);
@@ -119,7 +95,7 @@ public class ExampleMod implements ModInitializer {
                 }
             });
         });
-        
+
         System.out.println("ExampleMod: Все обработчики зарегистрированы");
     }
 }

@@ -49,7 +49,7 @@ class IntegrationTest {
         ExampleMod.MessagePayload payload = new ExampleMod.MessagePayload(messageBytes);
 
         assertThat(payload.data()).isEqualTo(messageBytes);
-        assertThat(payload.getId()).isNotNull();
+        assertThat(payload.type()).isEqualTo(ExampleMod.MessagePayload.TYPE);
     }
 
     @Test
@@ -60,7 +60,7 @@ class IntegrationTest {
         ExampleMod.ConfirmationPayload payload = new ExampleMod.ConfirmationPayload(confirmationMessage);
 
         assertThat(payload.message()).isEqualTo(confirmationMessage);
-        assertThat(payload.getId()).isNotNull();
+        assertThat(payload.type()).isEqualTo(ExampleMod.ConfirmationPayload.TYPE);
     }
 
     @Test
@@ -102,14 +102,14 @@ class IntegrationTest {
     }
 
     @Test
-    @DisplayName("Должен проверять корректность Payload ID")
-    void shouldVerifyPayloadIdConsistency() {
-        var messageId = ExampleMod.MessagePayload.ID;
-        var confirmationId = ExampleMod.ConfirmationPayload.ID;
+    @DisplayName("Должен проверять корректность типов Payload")
+    void shouldVerifyPayloadTypesConsistency() {
+        var messageType = ExampleMod.MessagePayload.TYPE;
+        var confirmationType = ExampleMod.ConfirmationPayload.TYPE;
 
-        assertThat(messageId).isNotNull();
-        assertThat(confirmationId).isNotNull();
-        assertThat(messageId.toString()).contains("minecraft_message_sender");
-        assertThat(confirmationId.toString()).contains("minecraft_message_sender");
+        assertThat(messageType).isNotNull();
+        assertThat(confirmationType).isNotNull();
+        assertThat(messageType.id().toString()).contains(ExampleMod.MOD_ID);
+        assertThat(confirmationType.id().toString()).contains(ExampleMod.MOD_ID);
     }
 }

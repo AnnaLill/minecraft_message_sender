@@ -20,3 +20,4 @@ CREATE INDEX IF NOT EXISTS idx_messages_uuid ON messages(uuid);
 -- Sample query to view messages
 SELECT * FROM messages ORDER BY id DESC LIMIT 10;
 
+

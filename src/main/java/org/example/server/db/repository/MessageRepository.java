@@ -7,6 +7,13 @@ import org.hibernate.cfg.Configuration;
 
 import java.util.UUID;
 
+/**
+ * Репозиторий для сохранения сообщений в PostgreSQL через Hibernate.
+ *
+ * <p>Использует ленивую инициализацию {@link SessionFactory}: одна попытка
+ * установки соединения при первом обращении. Если БД недоступна, репозиторий
+ * не падает, а логирует сообщения в консоль.</p>
+ */
 public class MessageRepository {
 
     private static SessionFactory sessionFactory = null;

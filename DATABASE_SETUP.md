@@ -343,9 +343,5 @@ session.persist(entity);
 - [PostgreSQL Documentation](https://www.postgresql.org/docs/)
 - [Fabric Networking](https://docs.fabricmc.net/)
 
----
 
-**Автор:** Minecraft Message Sender Team  
-**Версия:** 1.0.0  
-**Дата:** 2025-10-28
 
